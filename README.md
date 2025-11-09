@@ -1,11 +1,18 @@
 # YouTube Command-Line Downloader
 
-A simple tool to download video or audio from YouTube directly from your terminal.
+A simple tool to download video or audio from YouTube directly from your terminal with quality selection.
+
+## Features
+
+- Download videos with quality selection (144p to 1080p+)
+- Download audio in MP3 format
+- Files are saved with the original YouTube video title
+- Automatic format merging for best quality
 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) (version 14 or higher)
-
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (automatically used via yt-dlp-exec)
 
 ## Installation
 
@@ -19,13 +26,15 @@ A simple tool to download video or audio from YouTube directly from your termina
     cd youtube-video-downloader
     npm install
     ```
-    *(This step might take a bit longer as it's downloading a ~70MB FFmpeg file).*
+
+## Usage
 
 ### Download Video
-To download a video in the best available quality:
+To download a video with quality selection:
 ```bash
 node videodownload.js <YouTube URL>
 ```
+You'll be prompted to choose from available resolutions (144p, 240p, 360p, 480p, 720p, 1080p, etc.)
 
 ### Download Audio Only
 To download just the audio (MP3 format):
@@ -35,14 +44,21 @@ node audiodownload.js <YouTube URL>
 
 ### Example Commands
 ```bash
-# Download a video
+# Download a video with quality selection
 node videodownload.js https://www.youtube.com/watch?v=example123
 
 # Download audio only
 node audiodownload.js https://www.youtube.com/watch?v=example123
 ```
 
-### Output
-- Downloaded videos will be saved in the `downloads` folder
-- Video files will be in MP4 format
-- Audio files will be in MP3 format
+## Output
+- Downloaded files are saved in the `downloads` folder
+- Video files are in MP4 format
+- Audio files are in MP3 format
+- Files are named with the original YouTube video title
+
+## Dependencies
+
+This project uses only two packages:
+- `yt-dlp-exec` - YouTube downloader wrapper
+- `ffmpeg-static` - FFmpeg binary for audio/video processing
