@@ -8,7 +8,8 @@
     "yt-dlp-exec": "^1.0.2"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "node scripts/update-yt-dlp.js"
   },
   "keywords": [
     "youtube",

@@ -12,13 +12,8 @@ if (!videoUrl) {
     process.exit(1);
 }
 
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-const askQuestion = (q) => new Promise((resolve) => rl.question(q, resolve));
-
 async function downloadVideo(url) {
+    let rl;
     try {
         const downloadsFolder = 'downloads';
         if (!existsSync(downloadsFolder)) mkdirSync(downloadsFolder);
@@ -27,18 +22,19 @@ async function downloadVideo(url) {
         if (!ffmpegPath) throw new Error("FFmpeg not found. Please install ffmpeg-static.");
 
         console.log("Fetching available formats...");
-        const result = await ytdlp(url, {
+
+        // yt-dlp-exec returns the parsed object directly, not { stdout: "..." }
+        const info = await ytdlp(url, {
             dumpSingleJson: true,
             skipDownload: true,
             noWarnings: true,
             ffmpegLocation: ffmpegPath,
         });
 
-        const info = JSON.parse(result.stdout);
         const formats = info?.formats || [];
 
         if (!Array.isArray(formats) || formats.length === 0) {
-            console.log(" No format list available. Downloading best available MP4 automatically...");
+            console.log("No format list available. Downloading best available MP4 automatically...");
             const outputTemplate = path.join(downloadsFolder, '%(title)s.%(ext)s');
 
             await ytdlp(url, {
@@ -46,7 +42,7 @@ async function downloadVideo(url) {
                 mergeOutputFormat: 'mp4',
                 ffmpegLocation: ffmpegPath,
                 output: outputTemplate,
-                postprocessorArgs: ['-c:v copy -c:a aac -b:a 192k'],
+                postprocessorArgs: ['-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k'],
             });
 
             console.log(`\n Download complete in: ${downloadsFolder}`);
@@ -54,10 +50,10 @@ async function downloadVideo(url) {
         }
 
         console.log(`\nAvailable video formats:\n`);
-        
+
         const videoFormats = formats.filter(f => f.vcodec !== 'none' && f.height);
         const resolutionMap = new Map();
-        
+
         videoFormats.forEach(f => {
             const res = f.height;
             if (!resolutionMap.has(res) || (f.tbr > resolutionMap.get(res).tbr)) {
@@ -69,13 +65,17 @@ async function downloadVideo(url) {
                 });
             }
         });
-        
+
         const filteredFormats = Array.from(resolutionMap.values())
             .sort((a, b) => parseInt(a.resolution) - parseInt(b.resolution));
 
         filteredFormats.forEach((f, i) =>
             console.log(`${i + 1}. ${f.resolution} (${f.ext})`)
         );
+
+        // Create readline only when needed, inside the try block
+        rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        const askQuestion = (q) => new Promise((resolve) => rl.question(q, resolve));
 
         const choice = await askQuestion('\nEnter the number of the desired resolution: ');
         rl.close();
@@ -94,11 +94,12 @@ async function downloadVideo(url) {
             mergeOutputFormat: 'mp4',
             ffmpegLocation: ffmpegPath,
             output: outputTemplate,
-            postprocessorArgs: ['-c:v copy -c:a aac -b:a 192k'],
+            postprocessorArgs: ['-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k'],
         });
 
         console.log(`\n Download complete in: ${downloadsFolder}`);
     } catch (error) {
+        if (rl) rl.close(); // ensure process exits cleanly on error
         console.error("\n An error occurred:", error.message);
     }
 }

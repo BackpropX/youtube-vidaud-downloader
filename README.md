@@ -27,6 +27,8 @@ A simple tool to download video or audio from YouTube directly from your termina
     npm install
     ```
 
+    > `npm install` will also automatically download the latest `yt-dlp` binary for your platform to keep it compatible with YouTube.
+
 ## Usage
 
 ### Download Video
